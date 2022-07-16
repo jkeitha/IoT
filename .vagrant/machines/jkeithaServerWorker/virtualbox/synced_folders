@@ -1,0 +1,1 @@
+{"rsync":{"/vagrant":{"type":"rsync","guestpath":"/vagrant","hostpath":"/home/jkeitha/42/IoT","disabled":false,"__vagrantfile":true,"owner":"vagrant","group":"vagrant"}}}

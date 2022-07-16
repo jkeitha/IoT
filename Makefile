@@ -1,0 +1,3 @@
+Vagrant up
+
+Vagrant 
