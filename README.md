@@ -1,4 +1,5 @@
 # Vagrant commands:
+	-vagrant up - запускает виртуальную машину
 	-vagrant halt - останавливает виртуальную машину
 	-vagrant destroy - удаляет виртуальную машину
 	-vagrant suspend - "замораживает" виртуальную машину
