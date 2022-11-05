@@ -11,12 +11,12 @@ import (
 //}
 
 func addPublicKey(publicKey string) {
-	err := os.Mkdir("~/.ssh/", 0750)
+	err := os.MkdirAll("~/.ssh/", 0750)
 	if err != nil {
-		panic(fmt.Sprintf("SSH Public Key add failed with %s\n", err))
+		panic(fmt.Sprintf("Creating .ssh folder failed with %s\n", err))
 	}
 
-	command := exec.Command("cat", publicKey, ">>", "~/.ssh/authorized_keys")
+	command := exec.Command("bash", "-c", fmt.Sprintf("cat %s >> ~/.ssh/authorized_keys", publicKey))
 	err = command.Run()
 	if err != nil {
 		panic(fmt.Sprintf("SSH Public Key add failed with %s\n", err))
@@ -51,6 +51,6 @@ func NewDataStore(args []string) *DataStore {
 
 func main() {
 	fmt.Println("Install script running!")
-	dataStore := NewDataStore(os.Args)
-	addPublicKey(dataStore.sshPublicKeyPath)
+	//dataStore := NewDataStore(os.Args)
+	//addPublicKey(dataStore.sshPublicKeyPath)
 }
