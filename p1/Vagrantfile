@@ -24,6 +24,7 @@ Vagrant.configure("2") do |config|
         vb.cpus = VM_CPU
 #         vb.gui = false
         vb.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga"]
+        vb.customize ["modifyvm", :id, "--paravirtprovider", "legacy"]
     end
 
     config.vm.define "#{USERNAME}S" do |s|
