@@ -2,7 +2,7 @@ USERNAME = 'swquinc'
 SERVER_IP = '192.168.42.110'
 WORKER_IP = '192.168.42.111'
 
-VM_RAM = 1024
+VM_RAM = 2048
 VM_CPU = 1
 CENTOS_STREAM_9 = '../boxes/CentOS-Stream-Vagrant-9-latest.box'
 
