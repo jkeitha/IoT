@@ -1,26 +1,45 @@
+USERNAME = 'swquinc'
+SERVER_IP = '192.168.42.110'
+WORKER_IP = '192.168.42.111'
+
+VM_RAM = 2048
+VM_CPU = 1
+CENTOS_STREAM_9 = '../boxes/CentOS-Stream-Vagrant-9-latest.box'
+
+SSH_PUBLIC_KEY_PATH = '/vagrant/id_rsa.pub'
+SCRIPT_PATH = '/vagrant/scripts/install.go'
+CONTROLLER_CONFIG_PATH = '/vagrant/confs/k3s_controller.yaml'
+AGENT_CONFIG_PATH = '/vagrant/confs/k3s_agent.yaml'
+
 Vagrant.configure("2") do |config|
-    config.vm.box = "boxomatic/centos-stream-9"
+    config.vm.box = CENTOS_STREAM_9
+    config.vm.provision "shell", inline: "sudo yum -y install go"
+    config.vm.provision "shell", inline: "sudo systemctl stop firewalld"
+#     config.vm.provision "file", source: "~/.ssh/id_rsa.pub", destination: SSH_PUBLIC_KEY_PATH
+    config.vm.boot_timeout = 1500
 
     config.vm.provider "virtualbox" do |vb|
-        vb.memory = 1024
-        vb.cpus = 1
+        vb.memory = VM_RAM
+        vb.cpus = VM_CPU
+        vb.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga"]
+        vb.customize ["modifyvm", :id, "--paravirtprovider", "legacy"]
     end
 
-    config.vm.define "swquincS" do |s|
-        s.vm.hostname = "swquincS"
+    config.vm.define "#{USERNAME}S" do |s|
+        s.vm.hostname = "#{USERNAME}S"
+        s.vm.provision "shell", inline: "sudo go run #{SCRIPT_PATH} server #{SSH_PUBLIC_KEY_PATH} #{CONTROLLER_CONFIG_PATH}"
+        s.vm.network "public_network", ip: SERVER_IP
         s.vm.provider "virtualbox" do |vb|
-            vb.name = "swquincS"
-#             vb.memory = 1024
-#             vb.cpus = 1
+            vb.name = "#{USERNAME}S"
         end
     end
 
-    config.vm.define "swquincSW" do |sw|
-        sw.vm.hostname = "swquincSW"
+    config.vm.define "#{USERNAME}SW" do |sw|
+        sw.vm.hostname = "#{USERNAME}SW"
+        sw.vm.provision "shell", inline: "sudo go run #{SCRIPT_PATH} agent #{SSH_PUBLIC_KEY_PATH} #{AGENT_CONFIG_PATH}"
+        sw.vm.network "public_network", ip: WORKER_IP
         sw.vm.provider "virtualbox" do |vb|
-            vb.name = "swquincSW"
-#             vb.memory = 1024
-#             vb.cpus = 1
+            vb.name = "#{USERNAME}SW"
         end
     end
 
