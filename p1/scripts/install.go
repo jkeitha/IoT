@@ -51,6 +51,7 @@ func NewDataStore(args []string) *DataStore {
 
 func main() {
 	fmt.Println("Install script running!")
+	// ToDO: 1. В скрипт добавить установку vim, k8s;
 	//dataStore := NewDataStore(os.Args)
 	//addPublicKey(dataStore.sshPublicKeyPath)
 }
