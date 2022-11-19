@@ -1,0 +1,12 @@
+Log created: 2022-11-12T18:38:03.879752000Z
+Process ID:  4016 (0xfb0)
+Parent PID:  1 (0x1)
+Executable:  /usr/lib/virtualbox/VBoxHeadless
+Arg[0]: /usr/lib/virtualbox/VBoxHeadless
+Arg[1]: --comment
+Arg[2]: swquincS
+Arg[3]: --startvm
+Arg[4]: fcaeca62-b341-428c-a9df-00d01e5ea9af
+Arg[5]: --vrde
+Arg[6]: config
+AddRef: illegal refcnt=3221225469 state=2

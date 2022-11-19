@@ -1,0 +1,89 @@
+Vagrant.configure("2") do |config|
+
+	config.vm.box = '../boxes/CentOS-Stream-Vagrant-9-20211111.1.x86_64.vagrant-virtualbox.box'
+	
+	config.vm.define "eerikaS" do |control|
+	  control.vm.hostname = "eerikaS"
+	  control.vm.network "private_network", ip: "192.168.42.110", auto_config: false
+	  control.vm.provider "virtualbox" do |v|
+	  v.customize ["modifyvm", :id, "--name", "eerikaS"]
+	  v.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
+	  v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+	  v.memory = 512
+	  v.cpus = 1
+	  end
+	  control.vm.provision "file", source: "~/.ssh/id_rsa.pub", destination: "/tmp/id_rsa.pub"
+	  control.vm.provision "file", source: "~/.ssh/id_rsa", destination: "/tmp/id_rsa"
+	  control.vm.provision "shell" do |s|
+	  s.inline = <<-SHELL
+		cd /etc/yum.repos.d/
+		sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
+		sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
+		sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://repos.lax.quadranet.com|g' /etc/yum.repos.d/CentOS-*
+		yum update -y
+		yum install -y net-tools
+	  
+		mkdir -p /root/.ssh
+		mv /tmp/id_rsa*  /root/.ssh/
+	
+		chmod 400 /root/.ssh/id_rsa*
+		chown root:root  /root/.ssh/id_rsa*
+	
+		cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
+		chmod 400 /root/.ssh/authorized_keys
+		chown root:root /root/.ssh/authorized_keys
+	
+		echo "127.0.0.1 $(hostname)" >> /etc/hosts
+	
+		export INSTALL_K3S_VERSION=v1.21.4+k3s1
+		export INSTALL_K3S_EXEC="server --write-kubeconfig-mode 644 --advertise-address=192.168.42.110 --node-ip=192.168.42.110"
+		curl -sfL https://get.k3s.io | sh - 
+	  SHELL
+	  s.privileged = true
+	  end
+	end
+	
+	config.vm.define "eerikaSW" do |control|
+	  control.vm.hostname = "eerikaSW"
+	  control.vm.network "private_network", ip: "192.168.42.111"
+	  control.vm.provider "virtualbox" do |v|
+		v.customize ["modifyvm", :id, "--name", "eerikaSW"]
+		v.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
+		v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+		v.memory = 512
+		v.cpus = 1
+	  end
+	  control.vm.provision "file", source: "~/.ssh/id_rsa.pub", destination: "/tmp/id_rsa.pub"
+	  control.vm.provision "file", source: "~/.ssh/id_rsa", destination: "/tmp/id_rsa"
+	  control.vm.provision "shell" do |s|
+	  s.inline = <<-SHELL
+		cd /etc/yum.repos.d/
+		sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
+		sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
+		sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://repos.lax.quadranet.com|g' /etc/yum.repos.d/CentOS-*
+		yum update -y
+		yum install -y net-tools
+	  
+			mkdir -p /root/.ssh
+		mv /tmp/id_rsa*  /root/.ssh/
+	
+		chmod 400 /root/.ssh/id_rsa*
+		chown root:root  /root/.ssh/id_rsa*
+	
+		cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
+		chmod 400 /root/.ssh/authorized_keys
+		chown root:root /root/.ssh/authorized_keys
+	
+		echo "127.0.0.1 $(hostname)" >> /etc/hosts
+		echo "192.168.42.110  eerikaS" >> /etc/hosts
+		sudo -i
+		scp -o StrictHostKeyChecking=no root@eerikas:/var/lib/rancher/k3s/server/token /tmp/token
+		export INSTALL_K3S_VERSION=v1.21.4+k3s1
+		export INSTALL_K3S_EXEC="agent --server https://eerikaS:6443 --token-file /tmp/token --node-ip=192.168.42.111"
+		curl -sfL https://get.k3s.io | sh -
+	  SHELL
+	  s.privileged = true
+	  end
+	end
+	
+  end

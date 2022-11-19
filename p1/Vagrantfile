@@ -1,10 +1,10 @@
-USERNAME = 'swquinc'
+USERNAME = 'jkeitha'
 SERVER_IP = '192.168.42.110'
 WORKER_IP = '192.168.42.111'
 
 VM_RAM = 2048
 VM_CPU = 1
-CENTOS_STREAM_9 = '../boxes/CentOS-Stream-Vagrant-9-latest.box'
+CENTOS_STREAM_9 = '../boxes/CentOS-Stream-Vagrant-9-20211111.1.x86_64.vagrant-virtualbox.box'
 
 SSH_PUBLIC_KEY_PATH = '/vagrant/id_rsa.pub'
 SCRIPT_PATH = '/vagrant/scripts/install.go'
@@ -13,16 +13,24 @@ AGENT_CONFIG_PATH = '/vagrant/confs/k3s_agent.yaml'
 
 Vagrant.configure("2") do |config|
     config.vm.box = CENTOS_STREAM_9
-    config.vm.provision "shell", inline: "sudo yum -y install go"
-    config.vm.provision "shell", inline: "sudo systemctl stop firewalld"
-#     config.vm.provision "file", source: "~/.ssh/id_rsa.pub", destination: SSH_PUBLIC_KEY_PATH
+    # config.vm.provision "shell", inline: "sudo yum -y install go"
+    # config.vm.provision "shell", inline: "sudo systemctl stop firewalld"
     config.vm.boot_timeout = 1500
+    config.ssh.forward_agent = true
+    config.ssh.insert_key = true
+    config.ssh.keys_only = false
+    # config.ssh.private_key_path = ["~/.ssh/id_rsa", "~/.vagrant.d/insecure_private_key"]
+    # config.vm.provision "file", source: "~/.ssh/id_rsa.pub", destination: "~/.ssh/authorized_keys"
+    config.vm.provision "file", source: "~/.ssh/id_rsa.pub", destination: SSH_PUBLIC_KEY_PATH
+    config.vm.provision "ansible" do |ansible|
+        ansible.playbook = "confs/playbook.yml"
+    end
 
     config.vm.provider "virtualbox" do |vb|
         vb.memory = VM_RAM
         vb.cpus = VM_CPU
         vb.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga"]
-        vb.customize ["modifyvm", :id, "--paravirtprovider", "legacy"]
+        # vb.customize ["modifyvm", :id, "--paravirtprovider", "legacy"]
     end
 
     config.vm.define "#{USERNAME}S" do |s|

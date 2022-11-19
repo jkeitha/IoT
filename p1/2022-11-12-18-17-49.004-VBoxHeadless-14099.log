@@ -1,0 +1,12 @@
+Log created: 2022-11-12T18:17:49.043285000Z
+Process ID:  14099 (0x3713)
+Parent PID:  1 (0x1)
+Executable:  /usr/lib/virtualbox/VBoxHeadless
+Arg[0]: /usr/lib/virtualbox/VBoxHeadless
+Arg[1]: --comment
+Arg[2]: swquincS
+Arg[3]: --startvm
+Arg[4]: 97b535b8-347f-410d-887b-da051fc303bc
+Arg[5]: --vrde
+Arg[6]: config
+AddRef: illegal refcnt=3221225469 state=2

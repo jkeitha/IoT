@@ -1,0 +1,60 @@
+MASTER_NODE_NAME = 'eerikaS'
+MASTER_NODE_IP = '192.168.42.110'
+WORKER_NODE_NAME = 'eerikaSW'
+WORKER_NODE_IP = '192.168.42.111'
+
+BOX = "centos/8"
+BOX_URL = "https://app.vagrantup.com/centos/boxes/8/versions/2011.0/providers/virtualbox.box"
+BOX_AUTO_UPDATE = false
+
+Vagrant.configure("2") do |config|
+	config.vm.box = BOX
+	config.vm.box_url = BOX_URL
+	config.vm.box_check_update = BOX_AUTO_UPDATE
+	config.vbguest.installer_options = { allow_kernel_upgrade: true }
+	config.vm.provision "shell" do |c|
+		c.inline = <<-SHELL
+			sudo systemctl disable --now firewalld
+		SHELL
+  
+	config.vm.provider "virtualbox" do |v|
+		v.memory = 1024
+		v.cpus = 1
+		v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+		v.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
+	end
+
+	config.vm.define MASTER_NODE_NAME do |master|
+		master.vm.hostname = MASTER_NODE_NAME
+		master.vm.network :private_network, ip: MASTER_NODE_IP
+		master.vm.synced_folder ".", "/vagrant", type: "virtualbox"
+		master.vm.provision "shell", privileged: true do |m|
+			m.inline = <<-SHELL
+				export INSTALL_K3S_EXEC="--write-kubeconfig-mode=644 --tls-san $(hostname) --node-ip $MASTER_NODE_IP  --bind-address=$MASTER_NODE_IP --advertise-address=$MASTER_NODE_IP "
+				curl -sfL https://get.k3s.io |  sh -
+				sudo cp /var/lib/rancher/k3s/server/node-token /vagrant/scripts/
+				sudo yum install net-tools -y
+				echo "alias k='kubectl'" >> /etc/profile.d/00-aliases.sh
+			SHELL
+		master.vm.provider "virtualbox" do |v|
+			v.name = MASTER_NODE_NAME
+		end
+	end
+
+	config.vm.define WORKER_NODE_NAME do |worker|
+		worker.vm.hostname = WORKER_NODE_NAME
+		worker.vm.network :private_network, ip: WORKER_NODE_IP 
+		worker.vm.synced_folder ".", "/vagrant", type: "virtualbox"
+		worker.vm.provision "shell", privileged: true do |m|
+			m.inline = <<-SHELL
+				export TOKEN_FILE="/vagrant/scripts/node-token"
+				export INSTALL_K3S_EXEC="agent --server https://$MASTER_NODE_IP:6443 --token-file $TOKEN_FILE --node-ip=$WORKER_NODE_IP"
+				curl -sfL https://get.k3s.io | sh -
+				sudo yum install net-tools -y
+				echo "alias k='kubectl'" >> /etc/profile.d/00-aliases.sh
+			SHELL
+		worker.vm.provider "virtualbox" do |v|
+			v.name = WORKER_NODE_NAME
+		end
+	end
+end
