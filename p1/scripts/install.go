@@ -51,6 +51,6 @@ func NewDataStore(args []string) *DataStore {
 
 func main() {
 	fmt.Println("Install script running!")
-	//dataStore := NewDataStore(os.Args)
-	//addPublicKey(dataStore.sshPublicKeyPath)
+	dataStore := NewDataStore(os.Args)
+	addPublicKey(dataStore.sshPublicKeyPath)
 }
