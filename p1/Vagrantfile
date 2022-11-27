@@ -2,7 +2,7 @@ USERNAME = 'swquinc'
 SERVER_IP = '192.168.42.110'
 WORKER_IP = '192.168.42.111'
 
-VM_RAM = 1024
+VM_RAM = 2048
 VM_CPU = 1
 CENTOS_STREAM_9 = '../boxes/CentOS-Stream-Vagrant-9-20211111.1.x86_64.vagrant-virtualbox.box'
 
@@ -14,12 +14,17 @@ Vagrant.configure("2") do |config|
         vb.cpus = VM_CPU
 		vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
 		vb.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
+		vb.customize ["modifyvm", :id, "--cpu-profile", "Intel Core i7-5600U"]
     end
+
+	config.vm.provision "shell", inline: "sudo sed -ie 's/SELINUX.*/SELINUX=disabled/' /etc/selinux/config"
+	config.vm.provision "shell", inline: "sudo sed -ie 's/SELINUX.*/SELINUX=disabled/' /etc/selinux/confige"
+	config.vm.provision "shell", inline: "sudo setenforce 0"
 
     config.vm.define "#{USERNAME}S" do |s|
         s.vm.hostname = "#{USERNAME}S"
         s.vm.network "private_network", ip: SERVER_IP
-		s.vm.provision "shell", inline: "sudo curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.22.0-rc1 INSTALL_K3S_EXEC='--token 12345' sudo sh -s -"
+		s.vm.provision "shell", inline: "curl -sfL https://get.k3s.io | sh -", env: {"INSTALL_K3S_EXEC" => "--node-ip $#{SERVER_IP} --bind-address=#{SERVER_IP} --token 12345", "INSTALL_K3S_VERSION" => "v1.25.4+k3s1"}
         s.vm.provider "virtualbox" do |vb|
             vb.name = "#{USERNAME}S"
         end
@@ -28,7 +33,7 @@ Vagrant.configure("2") do |config|
     config.vm.define "#{USERNAME}SW" do |sw|
         sw.vm.hostname = "#{USERNAME}SW"
         sw.vm.network "private_network", ip: WORKER_IP
-		sw.vm.provision "shell", inline: "curl -sfL https://get.k3s.io | K3S_URL=https://192.168.42.110:6443 K3S_TOKEN=12345 sh -"
+		sw.vm.provision "shell", inline: "curl -sfL https://get.k3s.io | sh -", env: {"K3S_URL" => "https://#{SERVER_IP}:6443", "K3S_TOKEN" => "12345",  "INSTALL_K3S_VERSION" => "v1.25.4+k3s1"}
         sw.vm.provider "virtualbox" do |vb|
             vb.name = "#{USERNAME}SW"
         end

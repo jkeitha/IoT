@@ -10,21 +10,6 @@ import (
 //	panic(fmt.Sprintf("%s%s\n", str, err))
 //}
 
-func addPublicKey(publicKey string) {
-	err := os.MkdirAll("~/.ssh/", 0750)
-	if err != nil {
-		panic(fmt.Sprintf("Creating .ssh folder failed with %s\n", err))
-	}
-
-	command := exec.Command("bash", "-c", fmt.Sprintf("cat %s >> ~/.ssh/authorized_keys", publicKey))
-	err = command.Run()
-	if err != nil {
-		panic(fmt.Sprintf("SSH Public Key add failed with %s\n", err))
-	}
-
-	fmt.Println("SSH Public Key added to authorized_keys!")
-}
-
 type DataStore struct {
 	nodeType         string
 	sshPublicKeyPath string
