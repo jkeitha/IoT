@@ -4,3 +4,4 @@ boxes
 .idea
 tmp
 */.vagrant
+*.log
