@@ -1,3 +1,27 @@
+USERNAME = 'jkeitha'
+SERVER_IP = '192.168.56.110'
+WORKER_IP = '192.168.42.111'
+
+VM_RAM = 2048
+VM_CPU = 2
+VM_IMAGE = '../boxes/focal-server-cloudimg-amd64-vagrant.box'
+
 Vagrant.configure("2") do |config|
-    config.vm.box = "boxomatic/centos-stream-9"
+    config.vm.box = VM_IMAGE
+    config.vm.boot_timeout = 1500
+    config.vm.provider "virtualbox" do |vb|
+        vb.memory = VM_RAM
+        vb.cpus = VM_CPU
+		vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+		vb.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
+    end
+
+    config.vm.define "#{USERNAME}S" do |s|
+        s.vm.hostname = "#{USERNAME}S"
+        s.vm.network "private_network", ip: SERVER_IP
+		s.vm.provision "shell", inline: "sudo curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.22.0-rc1 INSTALL_K3S_EXEC='--token 12345' sudo sh -s -"
+        s.vm.provider "virtualbox" do |vb|
+            vb.name = "#{USERNAME}S"
+        end
+    end
 end
